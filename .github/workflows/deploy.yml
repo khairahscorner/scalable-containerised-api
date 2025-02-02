@@ -46,9 +46,9 @@ jobs:
           terraform apply -target=module.aws_environment -var="repo_name=$REPOSITORY_NAME" -var="image_url=" -auto-approve
 
           # Capture ECR Repo URL and save to outputs for next job
-          echo "ECR_REPO_URL=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
+          echo "repository_url=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
     outputs:
-      ECR_REPO_URL: ${{ steps.set_ecr_output.outputs.ECR_REPO_URL }}  # Declare the outputs already captured in steps
+      repository_url: ${{ steps.set_ecr_output.outputs.repository_url }}  # Declare the outputs already captured in steps
       
   upload_docker_image:
     runs-on: ubuntu-latest
@@ -70,14 +70,14 @@ jobs:
       - name: Build and push Docker image to AWS ECR
         id: set_img_url
         run: |
-          ECR_REPO_URL=${{ needs.aws_environment_setup.outputs.ECR_REPO_URL }}
+          ECR_REPO_URL=${{ needs.aws_environment_setup.outputs.repository_url }}
           echo "Retrieved from previous job: $ECR_REPO_URL"
 
           bash ./scripts/docker_setup.sh $ECR_REPO_URL # IMAGE_URL is exported to github_env within the script run
-          echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
-          echo "Added IMAGE_URL: ::add-mask::$IMAGE_URL to job outputs"
+          echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
+          echo "Added image_url: ::add-mask::$IMAGE_URL to job outputs"
     outputs:
-      IMAGE_URL: ${{ steps.set_img_url.outputs.IMAGE_URL }}  # Declare the outputs already captured in steps
+      image_url: ${{ steps.set_img_url.outputs.image_url }}  # Declare the outputs already captured in steps
 
   ecs_setup:
     runs-on: ubuntu-latest
@@ -106,7 +106,7 @@ jobs:
 
       - name: Terraform provisioning for ECS
         run: |
-          IMAGE_URL=${{ needs.upload_docker_image.outputs.IMAGE_URL }}
+          IMAGE_URL=${{ needs.upload_docker_image.outputs.image_url }}
           echo "Retrieved from previous job: $IMAGE_URL"
 
           cd ./terraform
