@@ -78,15 +78,18 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and push Docker image to AWS ECR
-        id: set_img_url
         run: |
           ECR_REPO_URL=$(cat repo_url.txt)
           echo "Retrieved from previous job: $ECR_REPO_URL"
 
           bash ./scripts/docker_setup.sh $ECR_REPO_URL # IMAGE_URL is exported to github_env within the script run
-          echo "env: $IMAGE_URL"
+
+      - name: Export IMAGE_URL to output
+        id: set_img_url
+        run: |
+          echo "The image URL is: $IMAGE_URL"
           echo "img_url=$IMAGE_URL" >> $GITHUB_OUTPUT
-          echo "Added IMAGE_URL: ::add-mask::$IMAGE_URL to job outputs"
+
     outputs:
       img_url: ${{ steps.set_img_url.outputs.img_url }}  # Declare the outputs already captured in steps
 
