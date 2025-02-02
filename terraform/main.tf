@@ -14,17 +14,11 @@ provider "aws" {
 }
 
 
-# setup VPC, private/public subnets
 module "aws_environment" {
   source = "./modules/aws_environment"
 
   availability_zones = var.availability_zones
   cidr_block         = var.cidr_block
-}
-
-module "ecr_setup" {
-  source = "./modules/ecr_setup"
-
   repo_name = var.repo_name //pass in via command
 }
 
@@ -41,7 +35,6 @@ module "ecs_setup" {
   alb_security_group = module.aws_environment.alb_security_group
 
   depends_on = [
-    module.aws_environment,
-    module.ecr_setup
+    module.aws_environment
   ]
 }

@@ -28,3 +28,7 @@ output "ecs_security_group" {
 output "alb_security_group" {
   value = aws_security_group.allow_only_traffic_from_gateway
 }
+
+output "repository_url" {
+  value = aws_ecr_repository.private_repository.repository_url
+}

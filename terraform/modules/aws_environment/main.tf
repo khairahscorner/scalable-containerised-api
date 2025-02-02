@@ -80,3 +80,11 @@ resource "aws_security_group" "allow_only_traffic_from_load_balancer" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+resource "aws_ecr_repository" "private_repository" {
+  name                 = var.repo_name
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
