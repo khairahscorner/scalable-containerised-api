@@ -6,3 +6,4 @@ variable "private_subnets" {}
 variable "public_subnets" {}
 variable "ecs_security_group" {}
 variable "alb_security_group" {}
+variable "api_key" {}

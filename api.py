@@ -6,7 +6,9 @@ import os
 
 app = Flask(__name__)
 
-load_dotenv()
+# only for local run
+# load_dotenv()
+
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 # e.g /weather?city=Lagos

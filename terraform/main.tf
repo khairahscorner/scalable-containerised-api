@@ -33,6 +33,7 @@ module "ecs_setup" {
   
   vpc_id = module.aws_environment.vpc_id
   image_url = var.image_url //pass in via command
+  api_key = var.api_key //pass in via command
   ecs_execution_role_arn = module.aws_environment.ecs_execution_role_arn
   ecs_execution_role_name = module.aws_environment.ecs_execution_role_name
   private_subnets = module.aws_environment.private_subnets

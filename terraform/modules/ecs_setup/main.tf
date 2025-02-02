@@ -46,6 +46,12 @@ resource "aws_ecs_task_definition" "flask-task" {
           hostPort      = 80
         }
       ]
+      environment = [
+        {
+          name  = "OPENWEATHER_API_KEY"
+          value = var.api_key
+        }
+      ]
     }
   ])
 }
