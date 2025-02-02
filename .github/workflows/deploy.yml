@@ -85,4 +85,4 @@ jobs:
       - name: Terraform Apply
         run: |
           cd ./terraform
-          terraform apply ./artifacts/tfplan -input=false
+          terraform apply -input=false ./artifacts/tfplan
