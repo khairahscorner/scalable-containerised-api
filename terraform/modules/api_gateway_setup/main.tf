@@ -27,6 +27,18 @@ resource "aws_api_gateway_integration" "flask_integration" {
 
 resource "aws_api_gateway_deployment" "flask_deployment" {
   rest_api_id = aws_api_gateway_rest_api.flask_api.id
+  triggers = {
+    # hashed all entire resources to ensure all changes to any parts of them trigger a redeployment
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.flask_resource,
+      aws_api_gateway_method.flask_method,
+      aws_api_gateway_integration.flask_integration
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_api_gateway_stage" "flask_stage" {
