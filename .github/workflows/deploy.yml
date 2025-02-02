@@ -136,8 +136,7 @@ jobs:
           terraform apply -var="repo_name=$REPOSITORY_NAME" -var="image_url=$IMAGE_URL" -var="api_key=$OPENWEATHER_API_KEY" -auto-approve
 
           # Capture load balancer URL and save file to upload as artifact for next job
-          cd ../
-          echo "$(terraform output -raw api_gateway_url)" >> outputs.txt
+          echo "$(terraform output -raw api_gateway_url)" >> ../outputs.txt
 
       - name: Upload Gateway URL for next job
         uses: actions/upload-artifact@v4.6.0
