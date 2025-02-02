@@ -84,14 +84,17 @@ jobs:
 
           bash ./scripts/docker_setup.sh $ECR_REPO_URL # IMAGE_URL is exported to github_env within the script run
 
-      - name: Export IMAGE_URL to output
+      - name: Export IMAGE_URL to output file (because secret)
         id: set_img_url
         run: |
           echo "The image URL is: $IMAGE_URL"
-          echo "img_url=$IMAGE_URL" >> $GITHUB_OUTPUT
+          echo "$IMAGE_URL" >> img_url.txt
 
-    outputs:
-      img_url: ${{ steps.set_img_url.outputs.img_url }}  # Declare the outputs already captured in steps
+      - name: Upload output file for next job
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: img_url
+          path: img_url.txt
 
   ecs_setup:
     runs-on: ubuntu-latest
@@ -108,6 +111,12 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Download artifact
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: img_url
+          path: ./
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
 
@@ -120,7 +129,7 @@ jobs:
 
       - name: Terraform provisioning for ECS
         run: |
-          IMAGE_URL=${{ needs.upload_docker_image.outputs.img_url }}
+          IMAGE_URL=$(cat img_url.txt)
           echo "Retrieved from previous job: $IMAGE_URL"
 
           cd ./terraform
