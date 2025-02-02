@@ -18,3 +18,7 @@ variable "repo_name" {
 variable "api_key" {
   type = string
 }
+
+variable "path" {
+  type = string
+}

@@ -45,3 +45,14 @@ module "ecs_setup" {
     module.aws_environment
   ]
 }
+
+module "gateway_setup" {
+  source = "./modules/api_gateway_setup"
+  
+  path = var.path
+  load_balancer_url = module.ecs_setup.load_balancer_dns
+
+  depends_on = [
+    module.ecs_setup
+  ]
+}
