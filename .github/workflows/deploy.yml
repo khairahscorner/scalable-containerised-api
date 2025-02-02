@@ -1,0 +1,72 @@
+name: Deploy app
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+  REPOSITORY_NAME: apis
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image to AWS ECR
+        run: |
+          bash ./scripts/docker_setup.sh $REPOSITORY_NAME
+          echo $IMAGE_URL > image_url.txt
+          echo "Added IMAGE_URL: ::add-mask::$IMAGE_URL"
+
+      - name: Upload IMAGE_URL as artifact for next job
+        uses: actions/upload-artifact@v2
+        with:
+          name: image_url
+          path: image_url.txt 
+
+  infra-provision:
+    runs-on: ubuntu-latest
+    needs: setup
+    environment: ${{ vars.DEV_ENVIRONMENT }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download the artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: image_url
+
+      - name: Read IMAGE_URL from file and set as environment variable
+        run: |
+          IMAGE_URL=$(cat image_url.txt)
+        
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: Terraform  setup
+        run: |
+          terraform init
+          terraform plan -out=tfplan
+        
+      - name: Terraform Apply
+        run: |
+          terraform apply tfplan -var="image_url=$IMAGE_URL" -var="repo_name=$REPOSITORY_NAME"
