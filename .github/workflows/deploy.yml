@@ -41,9 +41,9 @@ jobs:
       - name: Terraform provisioning for ECR
         id: set_ecr_output
         run: |
-          cd ./terraform/modules/aws_environment
+          cd ./terraform
           terraform init
-          terraform apply -var="repo_name=$REPOSITORY_NAME" -auto-approve
+          terraform apply -target=module.aws_environment -var="repo_name=$REPOSITORY_NAME" -var="image_url=" -auto-approve
 
           # Capture ECR Repo URL and save to outputs for next job
           echo "ECR_REPO_URL=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
@@ -109,12 +109,12 @@ jobs:
           IMAGE_URL=${{ needs.upload_docker_image.outputs.IMAGE_URL }}
           echo "Retrieved from previous job: $IMAGE_URL"
 
-          cd ./terraform/modules/ecs_setup
+          cd ./terraform
           terraform init 
-          terraform apply -var="image_url=$IMAGE_URL" -auto-approve
+          terraform apply -target=module.ecs_setup -var="repo_name=" -var="image_url=$IMAGE_URL" -auto-approve
 
           # Capture load balancer URL and save file to upload as artifact for next job
-          cd ../../../
+          cd ../
           pwd
           echo "$(terraform output -raw load_balancer_dns)" >> outputs.txt
 
@@ -124,7 +124,7 @@ jobs:
           name: outputs
           path: outputs.txt
 
-  cleanup:
+  finish_job:
     runs-on: ubuntu-latest
     needs: ecs_setup
     environment: ${{ vars.DEV_ENVIRONMENT }}
@@ -141,3 +141,36 @@ jobs:
       - name: Show output URL
         run: |
           echo "Load balancer for app: $(cat outputs.txt)"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [aws_environment_setup, upload_docker_image, ecs_setup, finish_job]
+    # Only run if any previous job fails
+    if: failure()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4.0.3
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+  
+      - name: Restore Terraform Cache
+        uses: actions/cache@v4.2.0
+        with:
+          path: ./terraform/.terraform
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: terraform-${{ runner.os }}-
+  
+      - name: Destroy infrastructure
+        run: |
+          cd ./terraform
+          terraform init
+          terraform destroy -var="repo_name=" -var="image_url=" -auto-approve
+          echo "Terraform resources have been destroyed."

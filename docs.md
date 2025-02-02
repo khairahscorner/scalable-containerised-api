@@ -1,5 +1,6 @@
 Infrastructure Provisioning
-- 
+- issues encountered: mostly syntax related, dividing terraform runs to be able to run docker job in between,
+managing tfstate (lack of was causing terraform to recreate alll resources on every run)
 
 to setup load balancer:
 - need to create the LB
