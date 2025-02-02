@@ -56,6 +56,7 @@ jobs:
         run: |
           cd ./terraform
           terraform init -input=false
+          ls -la
           terraform plan -var="image_url=$IMAGE_URL" -var="repo_name=$REPOSITORY_NAME" -out=tfplan -input=false
 
       - name: Upload tfplan as artifact for next job
@@ -63,7 +64,13 @@ jobs:
         with:
           name: terraform-tfplan
           path: ./terraform/tfplan
-  
+
+      - name: Save Terraform Lock File as artifact
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: terraform-lock
+          path: ./terraform/*.terraform.lock.hcl
+      
   infra-provision:
     runs-on: ubuntu-latest
     needs: setup
