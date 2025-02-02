@@ -1,8 +1,11 @@
-Infrastructure Provisioning
-- issues encountered: mostly syntax related, dividing terraform runs to be able to run docker job in between,
-managing tfstate (lack of was causing terraform to recreate alll resources on every run)
+## Infrastructure Provisioning
 
-to setup load balancer:
+### Issues encountered
+- mostly syntax related errors,
+- dividing terraform provisioning to be able to run docker job in between (used `-target` option on `terraform apply` to provision ecr setup needed for docker run)
+- managing tfstate with terraform backend block (type s3): the lack of state management was causing terraform to recreate alll resources on every run, like a fresh start. [Docs](https://developer.hashicorp.com/terraform/language/terraform#terraform-backend)
+
+To setup load balancer:
 - need to create the LB
 - set a target group 
     - target groups decouple the LB from the actual targets (i.e its target groups that actually forwards traffic to the services), so the LB doesn't need to know what happens inside those resources or if things change; it uses target group to keep a constant and just focus on sending the traffic
@@ -11,22 +14,19 @@ to setup load balancer:
     - the middleman between the load balancer and the target group
     - listens for requests to the LB and determines how the traffic should route
 
-
-- Build image: docker build -t streamlit_app . 
-
-Deploy to ECS
-- setup env: `sh ecr_setup.sh`
-- configure ECS and deploy: `sh ecs_task_setup.sh`
+- Revise API gateway setup (use console/aws-cli)
 
 GitHub actions
-- running `terraform apply` with auto-approve is not recommended;
-- best practice: setup GitHub environments to require approvals and use the environments
+- best practice: setup GitHub environments to require approvals for terraform runs before using auto-approve (limited it to first job only)
 
 
-All variables needed in .env
+All secrets/variables needed in repo for GHA
 
 - OPENWEATHER_API_KEY
 - AWS_REGION
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_ACCOUNT_ID
+- DEV_ENVIRONMENT
+
+TODO: Enhancements with dynamoDB and elasticache
