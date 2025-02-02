@@ -46,9 +46,13 @@ jobs:
           terraform apply -target=module.aws_environment -var="repo_name=$REPOSITORY_NAME" -var="image_url=" -auto-approve
 
           # Capture ECR Repo URL and save to outputs for next job
-          echo "repository_url=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
-    outputs:
-      repository_url: ${{ steps.set_ecr_output.outputs.repository_url }}  # Declare the outputs already captured in steps
+          echo "$(terraform output -raw repository_url)" >> ../repo_url.txt
+    
+      - name: Upload output file for next job
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: repo_url
+          path: repo_url.txt
       
   upload_docker_image:
     runs-on: ubuntu-latest
@@ -64,20 +68,26 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Download artifact
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: repo_url
+          path: ./
+      
       - name: Setup Docker
         uses: docker/setup-buildx-action@v2
 
       - name: Build and push Docker image to AWS ECR
         id: set_img_url
         run: |
-          ECR_REPO_URL=${{ needs.aws_environment_setup.outputs.repository_url }}
+          ECR_REPO_URL=$(cat repo_url.txt)
           echo "Retrieved from previous job: $ECR_REPO_URL"
 
           bash ./scripts/docker_setup.sh $ECR_REPO_URL # IMAGE_URL is exported to github_env within the script run
-          echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
-          echo "Added image_url: ::add-mask::$IMAGE_URL to job outputs"
+          echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
+          echo "Added IMAGE_URL: ::add-mask::$IMAGE_URL to job outputs"
     outputs:
-      image_url: ${{ steps.set_img_url.outputs.image_url }}  # Declare the outputs already captured in steps
+      IMAGE_URL: ${{ steps.set_img_url.outputs.IMAGE_URL }}  # Declare the outputs already captured in steps
 
   ecs_setup:
     runs-on: ubuntu-latest
@@ -106,7 +116,7 @@ jobs:
 
       - name: Terraform provisioning for ECS
         run: |
-          IMAGE_URL=${{ needs.upload_docker_image.outputs.image_url }}
+          IMAGE_URL=${{ needs.upload_docker_image.outputs.IMAGE_URL }}
           echo "Retrieved from previous job: $IMAGE_URL"
 
           cd ./terraform
