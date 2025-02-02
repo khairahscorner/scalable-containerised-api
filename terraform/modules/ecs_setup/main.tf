@@ -30,6 +30,9 @@ resource "aws_ecs_task_definition" "flask-task" {
   requires_compatibilities = ["FARGATE"]
   network_mode = "awsvpc"
   execution_role_arn = var.ecs_execution_role_arn
+  cpu = 256
+  memory = 512
+
   container_definitions = jsonencode([
     {
       name      = "flask-container"
