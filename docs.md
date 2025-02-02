@@ -29,4 +29,6 @@ All secrets/variables needed in repo for GHA
 - AWS_ACCOUNT_ID
 - DEV_ENVIRONMENT
 
+cleanup locally: `terraform destroy -var="repo_name=" -var="image_url="  -var="api_key=" -auto-approve`
+
 TODO: Enhancements with dynamoDB and elasticache
