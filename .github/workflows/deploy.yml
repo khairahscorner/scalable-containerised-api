@@ -45,6 +45,13 @@ jobs:
       - name: Set up Terraform for init
         uses: hashicorp/setup-terraform@v3.1.2
 
+      - name: Cache Terraform Dependencies
+        uses: actions/cache@v4.2.0
+        with:
+          path: ./terraform/.terraform
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: terraform-${{ runner.os }}-
+
       - name: Terraform setup
         run: |
           cd ./terraform
@@ -54,8 +61,14 @@ jobs:
       - name: Upload tfplan as artifact for next job
         uses: actions/upload-artifact@v4.6.0
         with:
-          name: tfplan
+          name: terraform-tfplan
           path: ./terraform/tfplan
+
+      - name: Save Terraform Lock File as artifact
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: terraform-lock
+          path: ./terraform/.terraform.lock.hcl
 
       
   infra-provision:
@@ -66,21 +79,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download the artifact
+      - name: Download all terraform artifacts
         uses: actions/download-artifact@v4.1.8
         with:
-          path: ./artifacts
+          path: ./terraform
+          pattern: terraform-*
           merge-multiple: true
+ 
+      - name: Download image url file 
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: image_url
+          path: ./
   
       - name: confirm downloaded files
-        run: ls -R ./artifacts
+        run: |
+          ls -R ./terraform
+
+          # exits if result of command is a status 1 (fail) i.e file doesn't exist
+          test -f image_url.txt || exit 1
 
       - name: Read IMAGE_URL from file and set as environment variable
         run: |
-          IMAGE_URL=$(cat ./artifacts/image_url.txt)
+          IMAGE_URL=$(cat image_url.txt)
         
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: Restore Terraform Cache
+        uses: actions/cache@v4.2.0
+        with:
+          path: ./terraform/.terraform
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: terraform-${{ runner.os }}-
  
       - name: Terraform Apply
         run: |
