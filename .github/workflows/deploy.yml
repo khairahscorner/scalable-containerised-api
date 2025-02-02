@@ -42,7 +42,7 @@ jobs:
         run: |
           cd ./terraform/modules/aws_environment
           terraform init
-          terraform apply -var="repo_name=$REPOSITORY_NAME" -input=false
+          terraform apply -var="repo_name=$REPOSITORY_NAME" -auto-approve
 
           # Capture ECR Repo URL and save to outputs for next job
           echo "ECR_REPO_URL=$(terraform output -raw repository_url)" >> $GITHUB_OUTPUT
@@ -105,7 +105,7 @@ jobs:
 
           cd ./terraform/modules/ecs_setup
           terraform init 
-          terraform apply -var="image_url=$IMAGE_URL" -input=false
+          terraform apply -var="image_url=$IMAGE_URL" -auto-approve
 
           # Capture load balancer URL and save file to upload as artifact for next job
           cd ../../../
