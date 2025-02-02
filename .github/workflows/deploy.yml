@@ -64,9 +64,11 @@ jobs:
 
       - name: Terraform  setup
         run: |
+          cd ./terraform
           terraform init
           terraform plan -out=tfplan
         
       - name: Terraform Apply
         run: |
+          cd ./terraform
           terraform apply tfplan -var="image_url=$IMAGE_URL" -var="repo_name=$REPOSITORY_NAME"
