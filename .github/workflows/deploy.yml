@@ -34,8 +34,13 @@ jobs:
         run: |
           bash ./scripts/docker_setup.sh $REPOSITORY_NAME
           echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
-          echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_ENV
-          echo "Added IMAGE_URL: $IMAGE_URL"
+          echo "Added IMAGE_URL: ::add-mask::$IMAGE_URL"
+
+      - name: Upload IMAGE_URL as artifact for next job
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: image_url
+          path: image_url.txt 
                   
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
@@ -53,17 +58,23 @@ jobs:
           terraform init -input=false
           ls -la
 
+      - name: Check current directory
+        run: pwd
+        
       - name: Save Terraform Lock File as artifact
         uses: actions/upload-artifact@v4.6.0
         with:
           name: terraform-lock
-          path: ./terraform/*.terraform.lock.hcl
+          path: .terraform.lock.hcl
     
       - name: Terraform Plan
         run: |
           cd ./terraform
           terraform plan -var="image_url=$IMAGE_URL" -var="repo_name=$REPOSITORY_NAME" -out=tfplan -input=false
 
+      - name: Check current directory
+        run: pwd
+        
       - name: Upload tfplan as artifact for next job
         uses: actions/upload-artifact@v4.6.0
         with:
@@ -84,14 +95,20 @@ jobs:
           path: ./terraform
           pattern: terraform-*
           merge-multiple: true
+ 
+      - name: Download image url file 
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: image_url
+          path: ./
   
       - name: confirm downloaded files
         run: |
           ls -R ./terraform
 
-      - name: Read IMAGE_URL from previous job output and set as environment variable
+      - name: Read IMAGE_URL from file and set as environment variable
         run: |
-          IMAGE_URL=${{ needs.setup.outputs.IMAGE_URL }}
+          IMAGE_URL=$(cat image_url.txt)
         
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
