@@ -21,3 +21,27 @@ module "aws_environment" {
   availability_zones = var.availability_zones
   cidr_block         = var.cidr_block
 }
+
+module "ecr_setup" {
+  source = "./modules/ecr_setup"
+
+  repo_name = var.repo_name //pass in via command
+}
+
+module "ecs_setup" {
+  source = "./modules/ecs_setup"
+  
+  vpc_id = module.aws_environment.vpc_id
+  image_url = var.image_url //pass in via command
+  ecs_execution_role_arn = module.aws_environment.ecs_execution_role_arn
+  ecs_execution_role_name = module.aws_environment.ecs_execution_role_name
+  private_subnets = module.aws_environment.private_subnets
+  public_subnets = module.aws_environment.public_subnets
+  ecs_security_group = module.aws_environment.ecs_security_group
+  alb_security_group = module.aws_environment.alb_security_group
+
+  depends_on = [
+    module.aws_environment,
+    module.ecr_setup
+  ]
+}

@@ -6,3 +6,11 @@ variable "cidr_block" {
 variable "availability_zones" {
   type = list(any)
 }
+
+variable "image_url" {
+  type = string
+}
+
+variable "repo_name" {
+  type = string
+}
