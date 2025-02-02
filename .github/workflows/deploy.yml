@@ -63,14 +63,7 @@ jobs:
         with:
           name: terraform-tfplan
           path: ./terraform/tfplan
-
-      - name: Save Terraform Lock File as artifact
-        uses: actions/upload-artifact@v4.6.0
-        with:
-          name: terraform-lock
-          path: ./terraform/.terraform.lock.hcl
-
-      
+  
   infra-provision:
     runs-on: ubuntu-latest
     needs: setup
@@ -116,4 +109,4 @@ jobs:
       - name: Terraform Apply
         run: |
           cd ./terraform
-          terraform apply -input=false ../artifacts/tfplan
+          terraform apply -input=false tfplan
