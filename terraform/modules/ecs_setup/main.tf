@@ -12,6 +12,16 @@ resource "aws_lb_target_group" "lb-target-group" {
   port        = 80
   target_type = "ip"
   vpc_id      = var.vpc_id
+
+  health_check {
+    enabled = true
+    healthy_threshold = 2
+    unhealthy_threshold = 2
+    timeout = 7
+    interval = 120
+    path = "/health"
+    protocol = "HTTP"
+  }
 }
 
 resource "aws_lb_listener" "lb-listener" {

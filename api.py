@@ -11,6 +11,17 @@ app = Flask(__name__)
 
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
+@app.route('/', methods=['GET'])
+def health_check():
+    return jsonify({
+         "message": "Weather Query API",
+         "description": "Use /city=city_name to query for specific cities"
+         }), 200
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 # e.g /weather?city=Lagos
 @app.route('/weather', methods=['GET'])
 def fetch_weather():
