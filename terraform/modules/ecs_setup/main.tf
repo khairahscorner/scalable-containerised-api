@@ -13,11 +13,6 @@ resource "aws_lb_target_group" "lb-target-group" {
   target_type = "ip"
   vpc_id      = var.vpc_id
 
-  health_check {
-    enabled = true
-    path = "/health"
-    protocol = "HTTP"
-  }
 }
 
 resource "aws_lb_listener" "lb-listener" {
