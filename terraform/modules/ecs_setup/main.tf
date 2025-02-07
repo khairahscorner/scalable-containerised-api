@@ -27,12 +27,12 @@ resource "aws_lb_listener" "lb-listener" {
 }
 
 resource "aws_ecs_task_definition" "flask-task" {
-  family = "flask-apis"
+  family                   = "flask-apis"
   requires_compatibilities = ["FARGATE"]
-  network_mode = "awsvpc"
-  execution_role_arn = var.ecs_execution_role_arn
-  cpu = 256
-  memory = 512
+  network_mode             = "awsvpc"
+  execution_role_arn       = var.ecs_execution_role_arn
+  cpu                      = 256
+  memory                   = 512
 
   container_definitions = jsonencode([
     {
@@ -70,12 +70,12 @@ resource "aws_ecs_service" "flask-service" {
   name            = "flask-service"
   cluster         = aws_ecs_cluster.flask-apis-cluster.arn
   task_definition = aws_ecs_task_definition.flask-task.arn
-  launch_type = "FARGATE"
+  launch_type     = "FARGATE"
 
-  desired_count   = 2
+  desired_count        = 2
   force_new_deployment = true
   network_configuration {
-    subnets = var.private_subnets_ids
+    subnets         = var.private_subnets_ids
     security_groups = [var.ecs_security_group.id]
   }
 

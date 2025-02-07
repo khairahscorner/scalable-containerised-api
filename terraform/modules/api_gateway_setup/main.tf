@@ -17,12 +17,14 @@ resource "aws_api_gateway_method" "flask_method" {
 }
 
 resource "aws_api_gateway_integration" "flask_integration" {
-  rest_api_id              = aws_api_gateway_rest_api.flask_api.id
-  resource_id              = aws_api_gateway_resource.flask_resource.id
-  http_method              = aws_api_gateway_method.flask_method.http_method
-  integration_http_method  = "GET"
-  type                     = "HTTP_PROXY" # because it's integration with load balancer; if ECS directly, AWS_PROXY
-  uri                      = "http://${var.load_balancer_url}/${var.path}"  # Load Balancer DNS name
+  rest_api_id             = aws_api_gateway_rest_api.flask_api.id
+  resource_id             = aws_api_gateway_resource.flask_resource.id
+  http_method             = aws_api_gateway_method.flask_method.http_method
+  integration_http_method = "GET"
+
+  # because it's integration with load balancer; if ECS directly, AWS_PROXY
+  type = "HTTP_PROXY"
+  uri  = "http://${var.load_balancer_url}/${var.path}" # Load Balancer DNS name
 }
 
 resource "aws_api_gateway_deployment" "flask_deployment" {
@@ -42,7 +44,7 @@ resource "aws_api_gateway_deployment" "flask_deployment" {
 }
 
 resource "aws_api_gateway_stage" "flask_stage" {
-  rest_api_id  = aws_api_gateway_rest_api.flask_api.id
-  stage_name   = "v1"
+  rest_api_id   = aws_api_gateway_rest_api.flask_api.id
+  stage_name    = "v1"
   deployment_id = aws_api_gateway_deployment.flask_deployment.id
 }
