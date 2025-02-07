@@ -1,9 +1,17 @@
 variable "cidr_block" {
   type        = string
-  description = "VPC cidr block. Example: 10.10.0.0/16"
+  description = "VPC cidr block"
 }
 
 variable "availability_zones" {
+  type = list(any)
+}
+
+variable "public_subnets" {
+  type = list(any)
+}
+
+variable "private_subnets" {
   type = list(any)
 }
 

@@ -3,7 +3,7 @@ resource "aws_lb" "alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_security_group.id]
-  subnets            = var.public_subnets
+  subnets            = var.public_subnets_ids
 }
 
 resource "aws_lb_target_group" "lb-target-group" {
@@ -75,7 +75,7 @@ resource "aws_ecs_service" "flask-service" {
   desired_count   = 2
   force_new_deployment = true
   network_configuration {
-    subnets = var.private_subnets
+    subnets = var.private_subnets_ids
     security_groups = [var.ecs_security_group.id]
   }
 

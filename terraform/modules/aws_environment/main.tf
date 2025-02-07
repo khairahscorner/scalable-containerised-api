@@ -5,8 +5,8 @@ module "vpc" {
   cidr = var.cidr_block
 
   azs             = var.availability_zones
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.101.0/24", "10.0.102.0/24"]
+  public_subnets  = var.public_subnets
+  private_subnets = var.private_subnets
 
   enable_nat_gateway = true
   enable_vpn_gateway = false
@@ -45,7 +45,9 @@ resource "aws_security_group" "allow_only_traffic_from_gateway" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] //update this to just the API gateway
+
+    # allow only traffic from within public subnet (aka API gateway) into the LB
+    cidr_blocks = var.public_subnets
   }
 
   egress {
@@ -68,12 +70,13 @@ resource "aws_security_group" "allow_only_traffic_from_load_balancer" {
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
-    security_groups  = [aws_security_group.allow_only_traffic_from_gateway.id] # Allow only from the ALB
+
+    # Allow only from the ALB
+    security_groups  = [aws_security_group.allow_only_traffic_from_gateway.id]
   }
 
-  # Egress rules: Allow all outbound traffic (typical for ECS tasks)
   egress {
-    description = "Allow all outbound traffic"
+    description = "Allow all outbound traffic for ECS tasks"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

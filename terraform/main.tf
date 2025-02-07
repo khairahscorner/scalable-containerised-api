@@ -25,6 +25,8 @@ module "aws_environment" {
 
   availability_zones = var.availability_zones
   cidr_block         = var.cidr_block
+  public_subnets = var.public_subnets
+  private_subnets = var.private_subnets
   repo_name = var.repo_name //pass in via command
 }
 
@@ -36,8 +38,8 @@ module "ecs_setup" {
   api_key = var.api_key //pass in via command
   ecs_execution_role_arn = module.aws_environment.ecs_execution_role_arn
   ecs_execution_role_name = module.aws_environment.ecs_execution_role_name
-  private_subnets = module.aws_environment.private_subnets
-  public_subnets = module.aws_environment.public_subnets
+  private_subnets = module.aws_environment.private_subnets_ids
+  public_subnets = module.aws_environment.public_subnets_ids
   ecs_security_group = module.aws_environment.ecs_security_group
   alb_security_group = module.aws_environment.alb_security_group
 
