@@ -1,3 +1,10 @@
+variable "logging_role_name" {
+  default = "APIGatewayCloudWatchLogsRole"
+}
+variable "aws_managed_logs_policy_arn" {
+  default = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
@@ -113,4 +120,30 @@ resource "aws_ecr_repository" "private_repository" {
   image_scanning_configuration {
     scan_on_push = true
   }
+}
+
+// ensure API Gateway has global settings that enables cloudwatch logging
+resource "aws_iam_role" "api_gateway_logging_role" {
+  name = var.logging_role_name
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "apigateway.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_policy_attachment" "api_gateway_logging" {
+  name       = "APIGatewayLoggingPolicy"
+  roles      = [aws_iam_role.api_gateway_logging_role.name]
+  policy_arn = var.aws_managed_logs_policy_arn
+}
+
+resource "aws_api_gateway_account" "api_gateway_account" {
+  cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
 }
