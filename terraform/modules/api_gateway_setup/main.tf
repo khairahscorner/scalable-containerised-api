@@ -75,9 +75,19 @@ resource "aws_api_gateway_stage" "flask_stage" {
   rest_api_id   = aws_api_gateway_rest_api.flask_api.id
   stage_name    = var.api_version
   deployment_id = aws_api_gateway_deployment.flask_deployment.id
+
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.gateway_logs.arn
-    format          = "JSON"
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
   }
 }
 
