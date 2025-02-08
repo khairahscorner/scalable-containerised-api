@@ -88,6 +88,11 @@ resource "aws_lb_target_group" "lb-target-group" {
   port        = 80
   target_type = "ip"
   vpc_id      = module.vpc.vpc_id
+
+  health_check {
+    path     = "/health"
+    protocol = "HTTP"
+  }
 }
 
 resource "aws_lb_listener" "lb-listener" {
