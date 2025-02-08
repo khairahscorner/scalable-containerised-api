@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket = "devops-challenge-tf-state-files"
     key    = "files/terraform.tfstate"
-    region = var.region
+    region = "eu-west-2"
   }
 
   required_providers {

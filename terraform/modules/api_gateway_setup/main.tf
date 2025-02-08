@@ -56,11 +56,11 @@ data "aws_ip_ranges" "api_gateway" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_only_traffic_from_gateway" {
+  description       = "Allow inbound traffic only from API gateway IP ranges"
+  for_each          = toset(data.aws_ip_ranges.api_gateway.cidr_blocks)
   security_group_id = var.lb_sg_id
   ip_protocol       = "tcp"
   from_port         = 80
   to_port           = 80
-
-  description = "Allow inbound traffic only from API gateway IP ranges"
-  cidr_ipv4   = data.aws_ip_ranges.api_gateway.cidr_blocks
+  cidr_ipv4         = each.value
 }

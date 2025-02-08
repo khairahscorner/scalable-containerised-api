@@ -45,8 +45,9 @@ resource "aws_security_group" "alb_security_group" {
 
 resource "aws_vpc_security_group_egress_rule" "allow_all_lb_traffic_out" {
   security_group_id = aws_security_group.alb_security_group.id
-  description = "Allow all outbound traffic from ALB"
-  ip_protocol = "-1"
+  description       = "Allow all outbound traffic from ALB"
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
 }
 
 resource "aws_security_group" "ecs_security_group" {
@@ -68,8 +69,9 @@ resource "aws_vpc_security_group_ingress_rule" "allow_only_traffic_from_lb" {
 
 resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_out" {
   security_group_id = aws_security_group.ecs_security_group.id
-  description = "Allow all outbound traffic from ECS tasks"
-  ip_protocol = "-1"
+  description       = "Allow all outbound traffic from ECS tasks"
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
 }
 
 resource "aws_lb" "alb" {
@@ -85,7 +87,7 @@ resource "aws_lb_target_group" "lb-target-group" {
   protocol    = "HTTP"
   port        = 80
   target_type = "ip"
-  vpc_id      = module.vpc.default_vpc_id
+  vpc_id      = module.vpc.vpc_id
 }
 
 resource "aws_lb_listener" "lb-listener" {

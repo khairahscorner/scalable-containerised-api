@@ -39,7 +39,6 @@ jobs:
           restore-keys: terraform-${{ runner.os }}-
   
       - name: Terraform provisioning for ECR
-        id: set_ecr_output
         run: |
           cd ./terraform
           terraform init
@@ -53,7 +52,36 @@ jobs:
         with:
           name: repo_url
           path: repo_url.txt
-      
+  
+  provision_api_gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4.0.3
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+                        
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+  
+      - name: Cache Terraform Dependencies
+        uses: actions/cache@v4.2.0
+        with:
+          path: ./terraform/.terraform
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: terraform-${{ runner.os }}-
+  
+      - name: Terraform provisioning for API gateway
+        run: |
+          cd ./terraform
+          terraform init
+          terraform apply -target=module.api_gateway_setup -var="repo_name=" -var="image_url=" -var="api_key=" -auto-approve
+
   upload_docker_image:
     runs-on: ubuntu-latest
     needs: aws_environment_setup
@@ -96,7 +124,7 @@ jobs:
           name: img_url
           path: img_url.txt
 
-  infra_provision:
+  whole_infra_provision:
     runs-on: ubuntu-latest
     needs: upload_docker_image
     steps:
@@ -146,7 +174,7 @@ jobs:
 
   cleanup:
     runs-on: ubuntu-latest
-    needs: [aws_environment_setup, upload_docker_image, infra_provision]
+    needs: [aws_environment_setup, provision_api_gateway, upload_docker_image, whole_infra_provision]
     # Only run if any previous job fails
     if: failure()
     steps:
