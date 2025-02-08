@@ -31,28 +31,6 @@ resource "aws_api_gateway_integration" "flask_integration" {
   uri  = "http://${var.load_balancer_url}/${var.path}" # Load Balancer DNS name
 }
 
-resource "aws_api_gateway_resource" "health" {
-  rest_api_id = aws_api_gateway_rest_api.flask_api.id
-  parent_id   = aws_api_gateway_rest_api.flask_api.root_resource_id
-  path_part   = "health"
-}
-
-resource "aws_api_gateway_method" "health_method" {
-  rest_api_id   = aws_api_gateway_rest_api.flask_api.id
-  resource_id   = aws_api_gateway_resource.health.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "health_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.flask_api.id
-  resource_id             = aws_api_gateway_resource.health.id
-  http_method             = aws_api_gateway_method.health_method.http_method
-  integration_http_method = "GET"
-  type                    = "HTTP_PROXY"
-  uri                     = "http://${var.load_balancer_url}/health"
-}
-
 resource "aws_api_gateway_deployment" "flask_deployment" {
   rest_api_id = aws_api_gateway_rest_api.flask_api.id
   triggers = {
@@ -60,8 +38,7 @@ resource "aws_api_gateway_deployment" "flask_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.flask_resource,
       aws_api_gateway_method.flask_method,
-      aws_api_gateway_integration.flask_integration,
-      aws_api_gateway_integration.health_integration
+      aws_api_gateway_integration.flask_integration
     ]))
   }
 
