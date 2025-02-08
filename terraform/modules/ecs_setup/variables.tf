@@ -1,9 +1,6 @@
-variable "vpc_id" {}
 variable "image_url" {}
 variable "ecs_execution_role_arn" {}
-variable "ecs_execution_role_name" {}
 variable "private_subnets_ids" {}
-variable "public_subnets_ids" {}
-variable "ecs_security_group" {}
-variable "alb_security_group" {}
+variable "ecs_security_group_id" {}
+variable "lb_target_group_arn" {}
 variable "api_key" {}

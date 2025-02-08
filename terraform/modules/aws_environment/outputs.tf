@@ -21,14 +21,22 @@ output "ecs_execution_role_name" {
   value = aws_iam_role.ecsTaskExecutionRole.name
 }
 
-output "ecs_security_group" {
-  value = aws_security_group.allow_only_traffic_from_load_balancer
+output "alb_security_group_id" {
+  value = aws_security_group.alb_security_group.id
 }
 
-output "alb_security_group" {
-  value = aws_security_group.allow_only_traffic_from_gateway
+output "ecs_security_group_id" {
+  value = aws_security_group.ecs_security_group.id
 }
 
 output "repository_url" {
   value = aws_ecr_repository.private_repository.repository_url
+}
+
+output "load_balancer_dns" {
+  value = aws_lb.alb.dns_name
+}
+
+output "lb_target_group_arn" {
+  value = aws_lb_target_group.lb-target-group.arn
 }

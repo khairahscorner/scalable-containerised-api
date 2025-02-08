@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket = "devops-challenge-tf-state-files"
     key    = "files/terraform.tfstate"
-    region = "eu-west-2"
+    region = var.region
   }
 
   required_providers {
@@ -16,7 +16,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-west-2"
+  region = var.region
 }
 
 
@@ -30,31 +30,31 @@ module "aws_environment" {
   repo_name          = var.repo_name //pass in via command
 }
 
-module "ecs_setup" {
-  source = "./modules/ecs_setup"
+module "gateway_setup" {
+  source = "./modules/api_gateway_setup"
 
-  vpc_id                  = module.aws_environment.vpc_id
-  image_url               = var.image_url //pass in via command
-  api_key                 = var.api_key   //pass in via command
-  ecs_execution_role_arn  = module.aws_environment.ecs_execution_role_arn
-  ecs_execution_role_name = module.aws_environment.ecs_execution_role_name
-  private_subnets_ids     = module.aws_environment.private_subnets_ids
-  public_subnets_ids      = module.aws_environment.public_subnets_ids
-  ecs_security_group      = module.aws_environment.ecs_security_group
-  alb_security_group      = module.aws_environment.alb_security_group
+  path              = var.path
+  region            = var.region
+  load_balancer_url = module.aws_environment.load_balancer_dns
+  lb_sg_id          = module.aws_environment.alb_security_group_id
 
   depends_on = [
     module.aws_environment
   ]
 }
 
-module "gateway_setup" {
-  source = "./modules/api_gateway_setup"
+module "ecs_setup" {
+  source = "./modules/ecs_setup"
 
-  path              = var.path
-  load_balancer_url = module.ecs_setup.load_balancer_dns
+  image_url              = var.image_url //pass in via command
+  api_key                = var.api_key   //pass in via command
+  ecs_execution_role_arn = module.aws_environment.ecs_execution_role_arn
+  private_subnets_ids    = module.aws_environment.private_subnets_ids
+  ecs_security_group_id  = module.aws_environment.ecs_security_group_id
+  lb_target_group_arn    = module.aws_environment.lb_target_group_arn
 
   depends_on = [
-    module.ecs_setup
+    module.aws_environment,
+    module.gateway_setup
   ]
 }

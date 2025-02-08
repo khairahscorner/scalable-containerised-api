@@ -7,6 +7,9 @@ variable "availability_zones" {
   type = list(any)
 }
 
+variable "region" {
+  type = string
+}
 variable "public_subnets" {
   type = list(any)
 }

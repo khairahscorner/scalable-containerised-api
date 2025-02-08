@@ -1,31 +1,3 @@
-resource "aws_lb" "alb" {
-  name               = "flask-apis-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [var.alb_security_group.id]
-  subnets            = var.public_subnets_ids
-}
-
-resource "aws_lb_target_group" "lb-target-group" {
-  name        = "flask-apis-lb-tg"
-  protocol    = "HTTP"
-  port        = 80
-  target_type = "ip"
-  vpc_id      = var.vpc_id
-
-}
-
-resource "aws_lb_listener" "lb-listener" {
-  port              = 80
-  protocol          = "HTTP"
-  load_balancer_arn = aws_lb.alb.arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.lb-target-group.arn
-  }
-}
-
 resource "aws_ecs_task_definition" "flask-task" {
   family                   = "flask-apis"
   requires_compatibilities = ["FARGATE"]
@@ -76,11 +48,11 @@ resource "aws_ecs_service" "flask-service" {
   force_new_deployment = true
   network_configuration {
     subnets         = var.private_subnets_ids
-    security_groups = [var.ecs_security_group.id]
+    security_groups = [var.ecs_security_group_id]
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.lb-target-group.arn
+    target_group_arn = var.lb_target_group_arn
     container_name   = "flask-container"
     container_port   = 80
   }

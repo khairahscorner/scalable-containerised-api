@@ -48,3 +48,19 @@ resource "aws_api_gateway_stage" "flask_stage" {
   stage_name    = "v1"
   deployment_id = aws_api_gateway_deployment.flask_deployment.id
 }
+
+// update load balancer security group to only allow traffic from created api gateway
+data "aws_ip_ranges" "api_gateway" {
+  services = ["API_GATEWAY"]
+  regions  = [var.region]
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_only_traffic_from_gateway" {
+  security_group_id = var.lb_sg_id
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+
+  description = "Allow inbound traffic only from API gateway IP ranges"
+  cidr_ipv4   = data.aws_ip_ranges.api_gateway.cidr_blocks
+}
