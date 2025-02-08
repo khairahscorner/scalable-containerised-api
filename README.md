@@ -1,4 +1,4 @@
-# Architecting Scalable Containerised APIs
+# Deploying Scalable Containerised APIs
 
 ## About
 Enhancement project for [this project.](https://github.com/khairahscorner/weather-dashboard)
@@ -23,7 +23,7 @@ Enhancement project for [this project.](https://github.com/khairahscorner/weathe
 
 ## Development Process
   - [Documentation](docs.md)
-  - [Blog post]()
+  - [Blog post](https://khairahscorner.hashnode.dev/deploying-scalable-apis-with-terraform-and-github-actions)
 
 ## Enhancements
 - [Enhancement ideas](/enhancements-todo/)
