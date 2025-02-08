@@ -56,7 +56,7 @@ resource "aws_api_gateway_integration" "health_integration" {
 resource "aws_api_gateway_resource" "default" {
   rest_api_id = aws_api_gateway_rest_api.flask_api.id
   parent_id   = aws_api_gateway_rest_api.flask_api.root_resource_id
-  path_part   = "/"
+  path_part   = ""
 }
 
 resource "aws_api_gateway_method" "default_method" {
